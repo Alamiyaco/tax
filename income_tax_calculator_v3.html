@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>حاسبة ضريبة الدخل والضمان الاجتماعي</title>
+  <style>
+    :root{
+      --bg:#f3f6fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --primary:#0f5c45;
+      --primary-2:#134e4a;
+      --accent:#d7efe7;
+      --accent-2:#f4fbf8;
+      --gold:#b8891f;
+      --gold-soft:#fff8e8;
+      --danger:#8b1e1e;
+      --danger-soft:#fff1f1;
+      --shadow:0 18px 50px rgba(15,23,42,.08);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:"Segoe UI",Tahoma,Arial,sans-serif;
+      background:
+        radial-gradient(circle at top left, #eefaf4 0%, transparent 28%),
+        radial-gradient(circle at top right, #eef4ff 0%, transparent 24%),
+        linear-gradient(180deg,#f8fbff 0%, #f3f7fb 100%);
+      color:var(--text);
+    }
+
+    .container{width:min(1380px, calc(100% - 28px)); margin:20px auto 40px;}
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(135deg, #0f5c45 0%, #134e4a 60%, #0f172a 100%);
+      color:#fff;
+      border-radius:30px;
+      padding:32px;
+      box-shadow:var(--shadow);
+      margin-bottom:20px;
+    }
+    .hero:before,.hero:after{content:"";position:absolute;border-radius:999px;opacity:.14;pointer-events:none}
+    .hero:before{width:420px;height:420px;background:#fff;top:-180px;left:-120px}
+    .hero:after{width:320px;height:320px;background:#facc15;bottom:-180px;right:-100px}
+    .hero-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;position:relative;z-index:1}
+    .hero h1{margin:12px 0 8px;font-size:clamp(28px,3.2vw,42px);line-height:1.15}
+    .hero p{margin:0;max-width:980px;line-height:1.95;color:rgba(255,255,255,.92);font-size:15px;position:relative;z-index:1}
+    .hero-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;position:relative;z-index:1}
+    .meta-pill{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700}
+
+    .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:22px;position:relative;z-index:1}
+    .kpi{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px);border-radius:22px;padding:18px;min-height:112px}
+    .kpi .label{font-size:13px;color:rgba(255,255,255,.82);margin-bottom:8px;font-weight:600}
+    .kpi .value{font-size:28px;font-weight:900;line-height:1.2;word-break:break-word}
+
+    .layout{display:grid;grid-template-columns:1.05fr .95fr;gap:20px;align-items:start}
+    .stack{display:grid;gap:20px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px}
+    .head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+    .head h2{margin:0 0 6px;font-size:22px;letter-spacing:.1px}
+    .sub{margin:0;color:var(--muted);font-size:14px;line-height:1.9}
+    .badge{background:var(--accent-2);color:var(--primary-2);border:1px solid #cae6dc;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;white-space:nowrap}
+
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .field{display:flex;flex-direction:column;gap:8px}
+    .full{grid-column:1/-1}
+    label{font-size:14px;font-weight:800;color:#334155}
+    input,select{
+      width:100%;border:1px solid #d6deea;border-radius:14px;padding:13px 14px;font-size:15px;
+      outline:none;background:#fff;transition:.2s ease;
+    }
+    input:focus,select:focus{border-color:#1a8f64;box-shadow:0 0 0 4px rgba(22,163,74,.10)}
+
+    .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+    button{border:none;border-radius:14px;padding:13px 18px;font-size:15px;font-weight:900;cursor:pointer;transition:.2s ease}
+    .btn-primary{background:linear-gradient(135deg, var(--primary) 0%, #167353 100%);color:#fff}
+    .btn-secondary{background:#eef2f7;color:#0f172a}
+    .btn-outline{background:#fff;color:var(--primary);border:1px solid #cfe6dd}
+    button:hover{transform:translateY(-1px)}
+
+    .tip{margin-top:16px;padding:16px 18px;border-radius:18px;background:linear-gradient(135deg,#fff8eb 0%,#fffdf8 100%);border:1px solid #f2dfb2;color:#8a6112;line-height:1.9;font-size:14px}
+    .tip.green{background:linear-gradient(135deg,#edf9f1 0%,#fbfefc 100%);border-color:#b8e3c1;color:#0f5c45}
+
+    .summary{display:grid;gap:12px}
+    .box{border:1px solid var(--line);border-radius:20px;padding:18px;background:#fbfcfd}
+    .box.primary{background:linear-gradient(135deg,#ddf8ea 0%,#f4fdf8 100%);border-color:#9fdfbe}
+    .box.gold{background:linear-gradient(135deg,#fff8ea 0%, #fffdf7 100%);border-color:#f1deab}
+    .box.red{background:linear-gradient(135deg,#fff3f3 0%, #fffdfd 100%);border-color:#f0c0c0}
+    .box .label{font-size:13px;color:var(--muted);margin-bottom:7px}
+    .box .value{font-size:30px;font-weight:900;line-height:1.2;word-break:break-word}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+    .mini{border:1px solid var(--line);border-radius:18px;padding:16px;background:#fafcff}
+    .mini .label{font-size:13px;color:var(--muted);margin-bottom:6px}
+    .mini .value{font-size:23px;font-weight:900}
+
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:18px;margin-top:14px}
+    table{width:100%;border-collapse:collapse;background:#fff}
+    th,td{padding:13px 12px;border-bottom:1px solid var(--line);text-align:right;font-size:14px}
+    th{background:#f8fbfd;color:#334155;font-weight:900;position:sticky;top:0;z-index:1}
+    tr:hover td{background:#fbfdff}
+
+    .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+    .chart-box{border:1px solid var(--line);border-radius:18px;padding:14px;background:#fbfdff;min-height:320px}
+    .chart-box h3{margin:0 0 10px;font-size:16px}
+    .chart-box canvas{width:100% !important;height:250px !important}
+
+    .report{line-height:2;font-size:14px;color:#334155;background:linear-gradient(180deg,#fbfcfe 0%, #f8fafc 100%);border:1px dashed #cdd7e4;border-radius:18px;padding:18px;white-space:pre-line}
+
+    .pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .pill{display:inline-flex;align-items:center;gap:8px;background:var(--gold-soft);color:#7d5a0d;border:1px solid #eed89d;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800}
+
+    .bar-wrap{margin-top:14px;padding:16px;border:1px solid var(--line);border-radius:18px;background:#fbfcfe}
+    .bar-row{margin-bottom:14px}
+    .bar-row:last-child{margin-bottom:0}
+    .bar-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;margin-bottom:7px}
+    .bar{height:12px;background:#e8edf5;border-radius:999px;overflow:hidden}
+    .bar > span{display:block;height:100%;width:0%;border-radius:999px}
+    #taxBar{background:linear-gradient(90deg,#ef4444,#f97316)}
+    #socialBar{background:linear-gradient(90deg,#0f766e,#14b8a6)}
+
+    @media (max-width:1140px){.layout{grid-template-columns:1fr}}
+    @media (max-width:780px){
+      .container{width:min(100% - 14px,1380px);margin-top:8px}
+      .hero,.card{padding:18px}
+      .kpis,.grid,.grid3,.split,.chart-grid{grid-template-columns:1fr}
+      .box .value,.kpi .value{font-size:24px}
+      .chart-box canvas{height:220px !important}
+    }
+    @media print{
+      @page { size:A4 portrait; margin:10mm; }
+      body{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#fff !important}
+      html,body{background:#fff !important}
+      .actions,.tip{display:none !important}
+      .hero,.card{box-shadow:none !important}
+      .container{width:100% !important; margin:0 !important}
+      .layout{display:block !important}
+      .stack{display:block !important}
+      .card,.hero,.chart-box{break-inside:avoid !important;page-break-inside:avoid !important}
+      .hero{padding:18px !important;margin-bottom:10px !important}
+      .hero h1{font-size:24px !important}
+      .hero p,.sub{font-size:12px !important;line-height:1.7 !important}
+      .chart-grid{grid-template-columns:1fr 1fr !important;gap:8px !important}
+      .chart-box canvas{height:180px !important}
+      th,td{padding:8px 6px !important;font-size:11px !important}
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <h1>حاسبة ضريبة الدخل والضمان الاجتماعي</h1>
+          <p>
+            صفحة ويب مبنية على نفس منطق ملف الإكسل، مع احتساب الأشهر المسجلة، السماحات، المبلغ الخاضع للضريبة،
+            الضريبة السنوية، الضريبة الشهرية، والضمان الاجتماعي 5% بشكل واضح وجاهز للعرض أو الطباعة.
+          </p>
+          <div class="hero-meta">
+            <span class="meta-pill">مطابقة لمنطق الإكسل</span>
+            <span class="meta-pill">جاهزة للطباعة / PDF</span>
+            <span class="meta-pill">واجهة عربية احترافية</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi">
+          <div class="label">الضريبة الشهرية</div>
+          <div class="value" id="kpiMonthlyTax">0 د.ع</div>
+        </div>
+        <div class="kpi">
+          <div class="label">الضمان الاجتماعي</div>
+          <div class="value" id="kpiSocial">0 د.ع</div>
+        </div>
+        <div class="kpi">
+          <div class="label">مجموع الاستقطاعات</div>
+          <div class="value" id="kpiTotalDeduction">0 د.ع</div>
+        </div>
+        <div class="kpi">
+          <div class="label">الأشهر المحتسبة</div>
+          <div class="value" id="kpiMonths">0</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="layout">
+      <div class="stack">
+        <section class="card">
+          <div class="head">
+            <div>
+              <h2>المدخلات الأساسية</h2>
+              <p class="sub">أدخل البيانات كما في نموذج الإكسل ليتم احتساب النتائج تلقائيًا.</p>
+            </div>
+            <span class="badge">Inputs</span>
+          </div>
+
+          <div class="grid">
+            <div class="field">
+              <label for="salary">الراتب الاسمي</label>
+              <input id="salary" type="number" min="0" step="any" value="">
+            </div>
+            <div class="field">
+              <label for="maritalStatus">الحالة الاجتماعية</label>
+              <select id="maritalStatus">
+                <option value="اعزب">اعزب</option>
+                <option value="متزوج">متزوج</option>
+                <option value="متزوجة">متزوجة</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="children">عدد الأبناء</label>
+              <input id="children" type="number" min="0" step="1" value="0">
+            </div>
+            <div class="field">
+              <label for="startDate">تاريخ المباشرة</label>
+              <input id="startDate" type="date" value="">
+            </div>
+            <div class="field full">
+              <label for="endDate">تاريخ الانفكاك</label>
+              <input id="endDate" type="date" value="">
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn-primary" onclick="calculateTax()">احسب الآن</button>
+            <button class="btn-secondary" onclick="resetForm()">إفراغ الحقول</button>
+            <button class="btn-outline" onclick="window.print()">طباعة / PDF</button>
+          </div>
+
+          <div class="tip green">
+            ملاحظة: إذا تُرك تاريخ الانفكاك فارغًا، سيتم الاحتساب حتى تاريخ اليوم تمامًا كما في منطق ملف الإكسل.
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="head">
+            <div>
+              <h2>تفصيل بنود الاحتساب</h2>
+              <p class="sub">هذا الجدول يوضح جميع المكونات التي بُنيت عليها النتيجة النهائية.</p>
+            </div>
+            <span class="badge">Breakdown</span>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>البند</th>
+                  <th>القيمة</th>
+                  <th>ملاحظات</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>الأشهر المسجلة بالضمان</td><td id="rMonths">0</td><td>فرق الأشهر بين المباشرة والانفكاك</td></tr>
+                <tr><td>الراتب الاسمي السنوي المحتسب</td><td id="rAnnualSalary">0 د.ع</td><td>الراتب × الأشهر</td></tr>
+                <tr><td>سماح الحالة الاجتماعية</td><td id="rMaritalAllowance">0 د.ع</td><td id="rMaritalNote">حسب الحالة المختارة</td></tr>
+                <tr><td>سماح الأبناء</td><td id="rChildrenAllowance">0 د.ع</td><td>200,000 سنوي لكل ابن</td></tr>
+                <tr><td>مجموع السماحيات</td><td id="rTotalAllowance">0 د.ع</td><td>اجتماعية + أبناء</td></tr>
+                <tr><td>الضمان الاجتماعي</td><td id="rSocial">0 د.ع</td><td>5% من الراتب الاسمي</td></tr>
+                <tr><td>المبلغ الخاضع للضريبة</td><td id="rTaxable">0 د.ع</td><td>بعد السماحات والضمان</td></tr>
+                <tr><td>الضريبة السنوية</td><td id="rAnnualTax">0 د.ع</td><td>حسب الشرائح التصاعدية</td></tr>
+                <tr><td>الضريبة الشهرية</td><td id="rMonthlyTax">0 د.ع</td><td>تقريب الضريبة السنوية ثم قسمتها على الأشهر</td></tr>
+                <tr><td>مجموع الاستقطاعات</td><td id="rTotalDeduction">0 د.ع</td><td>الضمان + الضريبة الشهرية</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pill-row">
+            <span class="pill">أعزب: 2,500,000 سنويًا</span>
+            <span class="pill">متزوج: 4,500,000 سنويًا</span>
+            <span class="pill">متزوجة: 2,500,000 سنويًا</span>
+            <span class="pill">الطفل: 200,000 سنويًا</span>
+          </div>
+        </section>
+      </div>
+
+      <div class="stack">
+        <section class="card">
+          <div class="head">
+            <div>
+              <h2>الملخص التنفيذي</h2>
+              <p class="sub">أرقام سريعة وواضحة يمكن استخدامها مباشرة في الاجتماع أو التقرير.</p>
+            </div>
+            <span class="badge">Summary</span>
+          </div>
+
+          <div class="summary">
+            <div class="box primary">
+              <div class="label">الضريبة الشهرية</div>
+              <div class="value" id="monthlyTax">0 د.ع</div>
+            </div>
+            <div class="box gold">
+              <div class="label">الضمان الاجتماعي</div>
+              <div class="value" id="socialSecurity">0 د.ع</div>
+            </div>
+            <div class="box red">
+              <div class="label">مجموع الاستقطاعات</div>
+              <div class="value" id="totalDeduction">0 د.ع</div>
+            </div>
+          </div>
+
+
+        </section>
+
+        <section class="card">
+          <div class="head">
+            <div>
+              <h2>الرسوم التوضيحية</h2>
+              <p class="sub">إظهار بصري لتوزيع الضريبة والسماحات والاستقطاعات.</p>
+            </div>
+            <span class="badge">Charts</span>
+          </div>
+
+          <div class="chart-grid">
+            <div class="chart-box">
+              <h3>الضريبة الشهرية مقابل الضمان الشهري</h3>
+              <canvas id="deductionChart"></canvas>
+            </div>
+            <div class="chart-box">
+              <h3>توزيع عناصر الاحتساب</h3>
+              <canvas id="componentsChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="head">
+            <div>
+              <h2>النص التنفيذي الجاهز</h2>
+              <p class="sub">يمكن نسخه مباشرة في الإيميل أو التقرير أو شريحة العرض.</p>
+            </div>
+            <span class="badge">Report</span>
+          </div>
+          <div id="reportText" class="report">قم بإدخال البيانات ثم اضغط على "احسب الآن".</div>
+          <div class="tip">
+            الشرائح الضريبية المستخدمة هنا مطابقة لهيكل ملف الإكسل: 3% ثم 5% ثم 10% ثم 15% مع حدود تراكمية ثابتة.
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ALLOWANCES = {
+      'اعزب': 2500000,
+      'متزوج': 4500000,
+      'متزوجة': 2500000
+    };
+    const CHILD_ALLOWANCE_ANNUAL = 200000;
+    const SOCIAL_RATE = 0.05;
+
+    let deductionChart = null;
+    let componentsChart = null;
+
+    function getNum(id){
+      const raw = document.getElementById(id).value;
+      if(raw === '') return 0;
+      const v = parseFloat(raw);
+      return Number.isFinite(v) ? v : 0;
+    }
+
+    function getText(id){ return document.getElementById(id).value; }
+
+    function setText(id, value){ const el = document.getElementById(id); if(el) el.textContent = value; }
+    function setWidth(id, value){ document.getElementById(id).style.width = Math.max(0, Math.min(100, value)) + '%'; }
+
+    function formatIQD(num){
+      return new Intl.NumberFormat('en-US', {maximumFractionDigits:0}).format(Math.round(num)) + ' د.ع';
+    }
+
+    function formatPct(num){
+      return (Number.isFinite(num) ? num : 0).toFixed(1) + '%';
+    }
+
+    function pctOf(part, total){ return total > 0 ? (part / total) * 100 : 0; }
+
+    function monthsDiff(startDate, endDate){
+      if(!startDate) return 0;
+      const s = new Date(startDate);
+      const e = endDate ? new Date(endDate) : new Date();
+      if(Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) return 0;
+      return (e.getMonth() - s.getMonth()) + ((e.getFullYear() - s.getFullYear()) * 12);
+    }
+
+    function annualTaxByBrackets(taxable){
+      if(taxable <= 0) return 0;
+      if(taxable < 250000) return taxable * 0.03;
+      if(taxable < 500000) return ((taxable - 250000) * 0.05) + 7500;
+      if(taxable < 1000000) return ((taxable - 500000) * 0.10) + 20000;
+      return ((taxable - 1000000) * 0.15) + 70000;
+    }
+
+    function destroyCharts(){
+      if(deductionChart){ deductionChart.destroy(); deductionChart = null; }
+      if(componentsChart){ componentsChart.destroy(); componentsChart = null; }
+    }
+
+    function renderCharts(monthlyTax, socialSecurity, totalAllowance, taxableIncome, annualSalary){
+      if(typeof Chart === 'undefined') return;
+      destroyCharts();
+
+      deductionChart = new Chart(document.getElementById('deductionChart'), {
+        type: 'bar',
+        data: {
+          labels: ['الضريبة الشهرية', 'الضمان الاجتماعي'],
+          datasets: [{
+            data: [monthlyTax, socialSecurity],
+            backgroundColor: ['#f97316', '#14b8a6'],
+            borderRadius: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+
+      componentsChart = new Chart(document.getElementById('componentsChart'), {
+        type: 'doughnut',
+        data: {
+          labels: ['الراتب السنوي المحتسب', 'مجموع السماحيات', 'المبلغ الخاضع للضريبة'],
+          datasets: [{
+            data: [Math.max(annualSalary,0), Math.max(totalAllowance,0), Math.max(taxableIncome,0)],
+            backgroundColor: ['#0f766e', '#a78bfa', '#f59e0b'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '62%',
+          plugins: { legend: { position: 'bottom' } }
+        }
+      });
+    }
+
+    function calculateTax(){
+      const salary = getNum('salary');
+      const status = getText('maritalStatus');
+      const children = Math.max(0, Math.floor(getNum('children')));
+      const startDate = getText('startDate');
+      const endDate = getText('endDate');
+
+      const months = monthsDiff(startDate, endDate);
+      const annualSalary = salary * months;
+      const maritalAllowance = ((ALLOWANCES[status] || 0) / 12) * months;
+      const childrenAllowance = children * (CHILD_ALLOWANCE_ANNUAL / 12) * months;
+      const totalAllowance = maritalAllowance + childrenAllowance;
+      const socialSecurityAnnual = salary * SOCIAL_RATE * months;
+      const socialSecurityMonthly = salary * SOCIAL_RATE;
+      const taxableIncome = annualSalary - maritalAllowance - socialSecurityAnnual - childrenAllowance;
+      const annualTax = annualTaxByBrackets(taxableIncome);
+      const monthlyTax = months > 0 ? Math.round(annualTax) / months : 0;
+      const totalDeduction = socialSecurityMonthly + monthlyTax;
+
+      setText('monthlyTax', formatIQD(monthlyTax));
+      setText('socialSecurity', formatIQD(socialSecurityMonthly));
+      setText('totalDeduction', formatIQD(totalDeduction));
+
+      setText('kpiMonthlyTax', formatIQD(monthlyTax));
+      setText('kpiSocial', formatIQD(socialSecurityMonthly));
+      setText('kpiTotalDeduction', formatIQD(totalDeduction));
+      setText('kpiMonths', String(months));
+
+      setText('rMonths', String(months));
+      setText('rAnnualSalary', formatIQD(annualSalary));
+      setText('rMaritalAllowance', formatIQD(maritalAllowance));
+      setText('rChildrenAllowance', formatIQD(childrenAllowance));
+      setText('rTotalAllowance', formatIQD(totalAllowance));
+      setText('rSocial', formatIQD(socialSecurityAnnual));
+      setText('rTaxable', formatIQD(taxableIncome));
+      setText('rAnnualTax', formatIQD(annualTax));
+      setText('rMonthlyTax', formatIQD(monthlyTax));
+      setText('rTotalDeduction', formatIQD(totalDeduction));
+      setText('rMaritalNote', `الحالة: ${status}`);
+
+      renderCharts(monthlyTax, socialSecurityMonthly, totalAllowance, taxableIncome, annualSalary);
+
+      const report = `تشير نتائج الاحتساب إلى أن عدد الأشهر المسجلة بالضمان يبلغ ${months} شهر/أشهر.
+
+الراتب الاسمي المحتسب للفترة بلغ ${formatIQD(annualSalary)}،
+في حين بلغ سماح الحالة الاجتماعية ${formatIQD(maritalAllowance)}،
+وسماح الأبناء ${formatIQD(childrenAllowance)}،
+ليصبح مجموع السماحيات ${formatIQD(totalAllowance)}.
+
+كما بلغ الضمان الاجتماعي السنوي ${formatIQD(socialSecurityAnnual)}،
+ووصل المبلغ الخاضع للضريبة إلى ${formatIQD(taxableIncome)}.
+
+وبناءً على الشرائح الضريبية المعتمدة، فإن الضريبة السنوية تبلغ ${formatIQD(annualTax)}،
+أما الضريبة الشهرية فتبلغ ${formatIQD(monthlyTax)}،
+في حين يبلغ الضمان الاجتماعي الشهري ${formatIQD(socialSecurityMonthly)}.
+
+وعليه فإن مجموع الاستقطاعات الشهرية النهائية يبلغ ${formatIQD(totalDeduction)}.`;
+
+      setText('reportText', report);
+    }
+
+    function resetForm(){
+      document.getElementById('salary').value = '';
+      document.getElementById('maritalStatus').value = 'اعزب';
+      document.getElementById('children').value = '0';
+      document.getElementById('startDate').value = '';
+      document.getElementById('endDate').value = '';
+
+      ['monthlyTax','socialSecurity','totalDeduction','kpiMonthlyTax','kpiSocial','kpiTotalDeduction'].forEach(id => setText(id, '0 د.ع'));
+      setText('kpiMonths', '0');
+      ['rAnnualSalary','rMaritalAllowance','rChildrenAllowance','rTotalAllowance','rSocial','rTaxable','rAnnualTax','rMonthlyTax','rTotalDeduction'].forEach(id => setText(id, '0 د.ع'));
+      setText('rMonths', '0');
+      setText('rMaritalNote', 'حسب الحالة المختارة');
+
+      setText('reportText', 'قم بإدخال البيانات ثم اضغط على "احسب الآن".');
+      destroyCharts();
+    }
+  </script>
+</body>
+</html>
